@@ -2,21 +2,23 @@
 
 %% Constants and options
 path_ft = uigetdir([],'Give me the Field Trip folder!');
-path_mri = uigetfile('','Feed the MRI data [enable all data]');
-path_loc_spec = uigetfile('','Feed me the EEG electrode locations [enable all data]');
+[mri_data,mri_path] = uigetfile('','Feed the MRI data [enable all data]');
+[loc_file,loc_path] = uigetfile('','Feed me the EEG electrode locations [enable all data]');
+
+path_mri = [mri_path,mri_data];
+path_loc_spec = [loc_path,loc_file];
 
 %MRI alignment
 met_align = 'interactive'; % method
 
 %MRI segmentation
-tissue_seg = {'brain','skull','scalp'}; % tissue types
+% tissue_seg = {'brain','skull','scalp'}; % tissue types
+tissue_seg = {'gray','white','csf','skull','scalp'};
 
-%MRI mesh preparation
-tissue_mesh = {'brain','skull','scalp'}; % tissue types
-vertices_mesh = [3000 2000 1000];
+% vertices_mesh = [3000 2000 1000];
 
 %Head model preparation
-met_head = 'singleshell'; % You can also specify 'openmeeg', 'bemcp', or another method.
+met_head = 'bemcp'; % You can also specify 'openmeeg', 'simbio', 'bemcp', or another method.
 
 %Sensor locations fieldtrip
 path_loc_std = [path_ft '\template\electrode\standard_1005.elc'];
@@ -29,32 +31,84 @@ ft_defaults
 %% Read MRI file 
 mri = ft_read_mri(path_mri);
 
+cfg = [];
+cfg.dim = mri.dim;
+mri = ft_volumereslice(cfg,mri);
+
 %% Inspect the axes, align the anatomical MRI to desired coordinate system/template, and inspect again if correct
-ft_determine_coordsys(mri, met_align, 'no')
+ft_sourceplot(cfg,mri);
 
 cfg = [];
 cfg.method = met_align;
 [mri] = ft_volumerealign(cfg,mri);
 
 ft_determine_coordsys(mri, met_align, 'no')
+ft_sourceplot(cfg,mri);
 
 %% Segment MRI into different tissue types
 cfg = [];
-cfg.output = tissue_seg;
+% cfg.output = tissue_seg;
+
+cfg.spmversion     = 'spm12';
+cfg.spmmethod      = 'mars'; %generate 6 tissues
+cfg.write          = 'no';
+cfg.tissue = {'gray','white','csf','bone','softtissue','air'};
 segmentedmri = ft_volumesegment(cfg, mri);
 
+
+%% plot segementation
+segmentedmri.transform = mri.transform;
+segmentedmri.anatomy   = mri.anatomy;
+
+cfg              = [];
+cfg.funparameter = 'gray';
+ft_sourceplot(cfg,segmentedmri);
+
+% seg_i = ft_datatype_segmentation(segmentedmri,'segmentationstyle','indexed');
+% 
+% cfg              = [];
+% cfg.funparameter = 'seg';
+% cfg.funcolormap  = lines(6); % distinct color per tissue
+% cfg.location     = 'center';
+% cfg.atlas        = seg_i;    % the segmentation can also be used as atlas 
+% ft_sourceplot(cfg, seg_i);
+
 %% Prepare mesh
+
+cfg        = [];
+cfg.method = 'singleshell';
+cfg.tissue = {'gray','white','csf','bone','softtissue','air'};
+cfg.conductivity = [0.33 0.14 1.79 0.01 0.43 0.0262];
+vol        = ft_prepare_headmodel(cfg, segmentedmri);
+
+
+%%%%%%works up to this point%%%%%%%%%%%%
+
 cfg = [];
-cfg.tissue = tissue_mesh;
-cfg.numvertices = vertices_mesh;
+cfg.method = 'hexahedral';
+
+cfg.spmversion     = 'spm12';
+
+
+% cfg.numvertices = vertices_mesh;
+
+cfg        = [];
+% cfg.shift  = 0.3;
+% cfg.method = 'hexahedral';
+cfg.tissue = tissue_seg;
+
+ % for brain, skull, scalp
 bnd=ft_prepare_mesh(cfg,segmentedmri);
 
 %% convert brain into MNE
 bnd_MNE = ft_transform_geometry(segmentedmri.transform, bnd(1)); %this is used later for Leadfield
 
 %% Prepare head model
+
 cfg = [];
 cfg.method = met_head;
+% cfg.conductivity = [0.3300, 0.0041, 0.3300];
+cfg.conductivity = [0.33 0.14 1.79 0.01 0.43];
 vol = ft_prepare_headmodel(cfg, bnd);
 
 %% Plot segmented head model
@@ -67,11 +121,17 @@ vol = ft_prepare_headmodel(cfg, bnd);
 % ft_plot_mesh(vol.bnd(1),'facecolor','none'); %brain
 
 figure;
-ft_plot_mesh(vol.bnd(3), 'facecolor',[0.2 0.2 0.2], 'facealpha', 0.3, 'edgecolor', [1 1 1], 'edgealpha', 0.05);
+ft_plot_mesh(vol.bnd(3), 'facecolor',[0.4 0.2 0.4], 'facealpha', 0.3, 'edgecolor', [1 1 1], 'edgealpha', 0.05);
 hold on;
-ft_plot_mesh(vol.bnd(2),'edgecolor','none','facealpha',0.4);
+ft_plot_mesh(vol.bnd(1),'edgecolor','none','facecolor',[0.4 0.3 0.4], 'facealpha', 0.3, 'edgecolor', [1 1 1], 'edgealpha', 0.05);
 hold on;
-ft_plot_mesh(vol.bnd(1),'edgecolor','none','facecolor',[0.4 0.6 0.4]);
+ft_plot_mesh(vol.bnd(2),'edgecolor','none','facecolor',[0.6 0.4 0.2], 'facealpha', 0.3, 'edgecolor', [1 1 1], 'edgealpha', 0.05);
+hold on;
+ft_plot_mesh(vol.bnd(4),'edgecolor','none','facecolor',[0.2 0.8 0.8], 'facealpha', 0.3, 'edgecolor', [1 1 1], 'edgealpha', 0.05);
+hold on;
+ft_plot_mesh(vol.bnd(5),'edgecolor','none','facecolor',[0.8 0.2 0.8], 'facealpha', 0.3, 'edgecolor', [1 1 1], 'edgealpha', 0.05);
+hold on;
+ft_plot_mesh(vol.bnd(6),'edgecolor','none','facecolor',[0.4 0.7 0.4], 'facealpha', 0.3, 'edgecolor', [1 1 1], 'edgealpha', 0.05);
 
 %% Read sensor locations (Currently somewhat of a hack)
 
@@ -117,7 +177,7 @@ lpa = mri.cfg.fiducial.lpa;
 rpa = mri.cfg.fiducial.rpa;
 
 %Transformation matrix
-transm = mri.transform;
+transm = mrial.transform;
 
 %Transform landmark coordinates
 nas = ft_warp_apply(transm,nas, 'homogenous');
@@ -153,6 +213,14 @@ cfg.method    = 'interactive';
 cfg.elec      = elec_aligned;
 cfg.headshape = vol.bnd(3);
 elec_aligned  = ft_electroderealign(cfg);
+
+
+
+
+
+
+
+
 
 %% now compute leadfield matrix!!!!!!!!!!!!
 
