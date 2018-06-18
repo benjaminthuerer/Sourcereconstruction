@@ -1,8 +1,9 @@
 %% Source reconstruction
 
 %% Constants and options
-path_ft = 'C:\Users\benjat\Documents\Matlab_Scripts\fieldtrip-20180610\fieldtrip-20180610';
-path_mri = 'C:\Users\benjat\Documents\07_fNetworks_rest-state\data_attentional-load\MR\1001\DICOM\IM_0001';
+path_ft = uigetdir([],'Give me the Field Trip folder!');
+path_mri = uigetfile('','Feed the MRI data [enable all data]');
+path_loc_spec = uigetfile('','Feed me the EEG electrode locations [enable all data]');
 
 %MRI alignment
 met_align = 'interactive'; % method
@@ -17,9 +18,9 @@ vertices_mesh = [3000 2000 1000];
 %Head model preparation
 met_head = 'singleshell'; % You can also specify 'openmeeg', 'bemcp', or another method.
 
-%Sensor locations
-path_loc_spec = 'C:\Users\benjat\Documents\07_fNetworks_rest-state\data_attentional-load\Oslo62_s.sfp';
-path_loc_std = ['C:\Users\benjat\Documents\Matlab_Scripts\fieldtrip-20180610\fieldtrip-20180610\template\electrode\standard_1005.elc'];
+%Sensor locations fieldtrip
+path_loc_std = [path_ft '\template\electrode\standard_1005.elc'];
+
 
 %% Add path to field trip and set general settings
 addpath(path_ft)
