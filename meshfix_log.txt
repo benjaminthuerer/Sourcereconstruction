@@ -1,0 +1,2 @@
+MeshFix failed on C:\Users\benjat\AppData\Local\Temp\iso2mesh-benjat\pre_decouple1.off
+MeshFix failed on C:\Users\benjat\AppData\Local\Temp\iso2mesh-benjat\pre_decouple1.off
