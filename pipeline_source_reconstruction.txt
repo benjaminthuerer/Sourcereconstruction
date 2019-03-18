@@ -1,0 +1,11 @@
+Pipeline for source reconstruction with 12 tissue MIDA model:
+
+1. calculate MIDA template and tissue propability maps (TPM) from the raw MIDA model (this step has to be done only once! It does not depend on any subject data)
+	- run: UiO_calculate_MIDA_TPM.m
+	- input: fieldtrip folder; Folder where the TPM and template should be saved; raw MIDA file (*.nii)
+
+2. (optional): if subjects T1 MRI files are NOT in .nii, transform to .nii
+	- run: UiO_transform_MRI_to_NIFTI.m
+	- input: fieldtrip folder; individual subject MRI file; save folder for the transformed MRI
+
+3. step-by-step in CSV file (yellow color functions)?
