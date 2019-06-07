@@ -1,19 +1,21 @@
-subjID = 's12';
+subjID = 'benjamin'; %change according to subject
 
-path_ft = uigetdir([],'Give me the Field Trip folder!');
-path_spm = uigetdir([],'Give me the SPM folder!');
-save_folder = uigetdir([],'where do you want to save the MIDA template and TPM?');
+% non-hardcoded section:
+% path_ft = uigetdir([],'Give me the Field Trip folder!');
+% path_spm = uigetdir([],'Give me the SPM folder!');
+% save_folder = uigetdir([],'where do you want to save the MIDA template and TPM?');
+% [MIDA, MIDApath] = uigetfile('*.nii', 'Pick unmodified MIDA template');
+% [loc_file,loc_path] = uigetfile('*.*','Feed me the EEG electrode locations');
 
-if ispc
-    save_folder = [save_folder '\'];
-else
-    save_folder = [save_folder '/'];
-end
+% hardcoded:
+path_ft = 'Z:\Matlab_Scripts\Fieldtrip\new_fieldtrip';
+path_spm = 'Z:\Matlab_Scripts\spm12\spm12';
+save_folder = 'Z:\Matlab_Scripts\MIDA_modified';
+MIDA = 'MIDA_v1.nii';
+MIDApath = 'Z:\07_fNetworks_rest-state\MIDA_head-model\MIDAv1.0\MIDA_v1.0\MIDA_v1_voxels';
+loc_file = 'OsloLab_62channel.elp';
+loc_path = 'Z:\07_fNetworks_rest-state\data_attentional-load';
 
-[MIDA, MIDApath] = uigetfile('*.nii', 'Pick unmodified MIDA template');
-[subjectMRI, subjectMRIpath] = uigetfile('*.nii', 'Pick subject MRI');
-
-[loc_file,loc_path] = uigetfile('*.*','Feed me the EEG electrode locations');
 
 %% if subject MIR only a DICOM run this section
 restoredefaultpath;
@@ -34,6 +36,21 @@ ft_sourcewrite(cfg, mri);
 % [subjectMRI, subjectMRIpath] = uigetfile('*.nii', 'Pick subject MRI');
 subjectMRI = [subjectMRI_DICOM '.nii'];
 subjectMRIpath = [save_folder_nifti '\'];
+
+
+%% When subject MRI available as NIFTI, start with this section
+[subjectMRI, subjectMRIpath] = uigetfile('*.nii', 'Pick subject MRI');
+
+
+if ispc
+    save_folder = [save_folder '\'];
+else
+    save_folder = [save_folder '/'];
+end
+
+
+
+
 
 %% Process MIDA with fieldtrip
 restoredefaultpath;
