@@ -1,4 +1,4 @@
-subjID = 'benjamin'; %change according to subject
+subjID = 'nils'; %change according to subject
 
 % non-hardcoded section:
 % path_ft = uigetdir([],'Give me the Field Trip folder!');
@@ -12,16 +12,27 @@ path_ft = 'Z:\Matlab_Scripts\Fieldtrip\new_fieldtrip';
 path_spm = 'Z:\Matlab_Scripts\spm12\spm12';
 save_folder = 'Z:\Matlab_Scripts\MIDA_modified';
 MIDA = 'MIDA_v1.nii';
-MIDApath = 'Z:\07_fNetworks_rest-state\MIDA_head-model\MIDAv1.0\MIDA_v1.0\MIDA_v1_voxels';
-loc_file = 'OsloLab_62channel.elp';
-loc_path = 'Z:\07_fNetworks_rest-state\data_attentional-load';
+MIDApath = 'Z:\07_fNetworks_rest-state\MIDA_head-model\MIDAv1.0\MIDA_v1.0\MIDA_v1_voxels\';
+loc_file = 'Oslo62_s.sfp';
+loc_path = 'Z:\07_fNetworks_rest-state\data_attentional-load\';
 
+% check for system
+if ispc
+    save_folder = [save_folder '\'];
+else
+    save_folder = [save_folder '/'];
+end
 
-%% if subject MIR only a DICOM run this section
+% If subject MRI available as NIFTI:
+[subjectMRI, subjectMRIpath] = uigetfile('*.nii', 'Pick subject MRI');
+
+% else:
+%% if subject MRI only a DICOM run this section (this can be put also in a loop over subjects)
 restoredefaultpath;
 addpath(path_ft);
 ft_defaults;
 
+% for [list of subjects]
 [subjectMRI_DICOM, subjectMRIpath_DICOM] = uigetfile('*.*', 'Pick subject MRI in DICOM');
 save_folder_nifti = uigetdir([],'where do you want to save NIFTI file?');
 
@@ -32,35 +43,22 @@ cfg.filename  = [save_folder_nifti '\' subjectMRI_DICOM];
 cfg.filetype  = 'nifti';
 cfg.parameter = 'anatomy';
 ft_sourcewrite(cfg, mri);
+% end
 
-% [subjectMRI, subjectMRIpath] = uigetfile('*.nii', 'Pick subject MRI');
 subjectMRI = [subjectMRI_DICOM '.nii'];
 subjectMRIpath = [save_folder_nifti '\'];
 
-
-%% When subject MRI available as NIFTI, start with this section
-[subjectMRI, subjectMRIpath] = uigetfile('*.nii', 'Pick subject MRI');
-
-
-if ispc
-    save_folder = [save_folder '\'];
-else
-    save_folder = [save_folder '/'];
-end
-
-
-
-
+disp('Done: Subject MRI transformed to NIFTI');
 
 %% Process MIDA with fieldtrip
-restoredefaultpath;
-addpath(path_ft);
-ft_defaults;
-
-tmp = matlab.desktop.editor.getActive;
-cd(fileparts(tmp.Filename));
-
-UiO_process_MIDA(MIDA, MIDApath, save_folder);
+% restoredefaultpath;
+% addpath(path_ft);
+% ft_defaults;
+% 
+% tmp = matlab.desktop.editor.getActive;
+% cd(fileparts(tmp.Filename));
+% 
+% UiO_process_MIDA(MIDA, MIDApath, save_folder);
 
 %% Warp to subject space with SPM
 restoredefaultpath;
