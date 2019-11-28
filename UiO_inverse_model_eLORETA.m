@@ -65,6 +65,66 @@ cfg.eloreta.lambda                  = 0.05;
 cfg.headmodel = vol;
 source = ft_sourceanalysis(cfg, EEGdata);
 
+%% maybe you want to stop here and start a new function
+
+
+%% some plotting  
+
+% interpolate
+cfg            = [];
+cfg.spmversion = 'spm12';
+%cfg.downsample = 20;
+cfg.parameter = 'pow';
+sourceInt  = ft_sourceinterpolate(cfg, source , mri);
+    
+% normalise to MNI otherwise can't be plotted
+sourceIntNorm = ft_volumenormalise(cfg, sourceInt);
+   
+    % plot on brain
+cfg = [];
+cfg.spmversion = 'spm12';
+cfg.method         = 'surface';
+cfg.funparameter   = 'avg.pow';
+cfg.maskparameter  = cfg.funparameter;
+cfg.funcolormap    = 'jet';
+cfg.opacitymap     = 'rampup';
+cfg.projmethod     = 'nearest';
+cfg.surffile       = 'surface_white_both.mat';
+cfg.surfdownsample = 10;
+ft_sourceplot(cfg, sourceIntNorm);
+view ([90 0])
+    
+    % plot on MRI
+cfg              = [];
+cfg.spmversion = 'spm12';
+cfg.method       = 'slice';
+cfg.funparameter = 'pow';
+cfg.maskparameter = cfg.funparameter;
+cfg.opacitymap    = 'rampup';
+ft_sourceplot(cfg,sourceIntNorm);
+    
+%%
+%how do i get the power now for each sample?
+tic;
+lead = source.avg.mom(source.inside);
+Rdata = zeros(length(lead),length(lead{1}(1,:)),'single');
+
+percentages = floor(length(lead)/10:length(lead)/10:length(lead));
+percentages2 = 10:10:100;
+disp(['start computing the norm for each source and time bin. This may take a while...']);
+
+i = 1;
+while i < length(lead)+1
+    Rdata(i,:) = abs(hilbert(sqrt(lead{i}(1,:).^2 + lead{i}(2,:).^2 + lead{i}(3,:).^2))); % transform to hilbert envelope
+    if ~isempty(find(percentages == i))
+        disp([num2str(percentages2(percentages == i)) ' % done']);
+    end
+    i = i+1;
+end
+toc;
+
+clear lead
+%% from here this is Liu 2017 specific to find the DMN!!!!!!!!!!!!
 % norm each source at each time bin and compute the hilbert envelope
 tic;
 lead = source.avg.mom(source.inside);

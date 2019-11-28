@@ -51,16 +51,16 @@ subjectMRIpath = [save_folder_nifti '\'];
 disp('Done: Subject MRI transformed to NIFTI');
 
 %% Process MIDA with fieldtrip
-% restoredefaultpath;
-% addpath(path_ft);
-% ft_defaults;
-% 
-% tmp = matlab.desktop.editor.getActive;
-% cd(fileparts(tmp.Filename));
-% 
-% UiO_process_MIDA(MIDA, MIDApath, save_folder);
+restoredefaultpath;
+addpath(path_ft);
+ft_defaults;
 
-%% Warp to subject space with SPM
+tmp = matlab.desktop.editor.getActive;
+cd(fileparts(tmp.Filename));
+
+UiO_process_MIDA(MIDA, MIDApath, save_folder);
+
+%% Warp to subject space with SPM (takes up to 20min to run!)
 restoredefaultpath;
 addpath(genpath(path_spm));
 
@@ -69,7 +69,7 @@ cd(fileparts(tmp.Filename));
 
 UiO_transform_MIDA_to_subject(save_folder, subjectMRI, subjectMRIpath, save_folder, subjID);
 
-%% Create 12 tissue FEM model
+%% Create 12 tissue FEM model (takes up to 8h to run!)
 restoredefaultpath;
 addpath(path_ft);
 ft_defaults;

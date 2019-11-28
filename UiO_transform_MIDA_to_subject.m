@@ -91,5 +91,7 @@ matlabbatch{job_number}.spm.spatial.normalise.write.woptions.prefix = subjID;
 fprintf('Running normalization...\n');
 spm_jobman('run',matlabbatch(job_number));
 
+disp("Done. MIDA warped to subject space");
+
 end
 
